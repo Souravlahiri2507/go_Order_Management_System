@@ -7,8 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
-	// "go_oms/internal/api"
-	// "go_oms/internal/domain"
+	"go_oms/internal/api"
+	"go_oms/internal/domain"
 	"go_oms/internal/infrastructure"
 )
 
@@ -32,15 +32,15 @@ func main() {
 	reader := infrastructure.NewKafkaReader(cfg, "order-events-consumer-group")
 
 	// repository + service
-	//repo := infrastructure.NewMySQLOrderRepository(db)
-	//svc := domain.NewOrderService(repo, writer)
+	repo := infrastructure.NewMySQLOrderRepository(db)
+	svc := domain.NewOrderService(repo, writer)
 
 	// start consumer goroutine (logs and stores events)
 	go infrastructure.StartOrderEventsConsumer(context.Background(), reader, db)
 
 	// HTTP server
 	r := gin.Default()
-	//api.RegisterOrderRoutes(r, svc)
+	api.RegisterOrderRoutes(r, svc)
 
 	log.Printf("server listening on :%s", cfg.ServerPort)
 	if err := r.Run(":" + cfg.ServerPort); err != nil {
